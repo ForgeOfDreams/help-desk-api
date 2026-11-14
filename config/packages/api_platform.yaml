@@ -1,7 +1,54 @@
+
+    
+  
 api_platform:
-    title: Hello API Platform
-    version: 1.0.0
+    title: 'Help Desk API'
+    description: 'REST API for Help Desk ticket and support workflow management.'
+    version: '1.0.0'
+
+    # Keep plain JSON first for React/Vite clients. JSON-LD remains available
+    # for API Platform/Hydra clients that explicitly request it.
+    formats:
+        json: ['application/json']
+        jsonld: ['application/ld+json']
+
+    # OpenAPI JSON and the interactive HTML documentation are enabled.
+    docs_formats:
+        jsonld: ['application/ld+json']
+        jsonopenapi: ['application/vnd.openapi+json']
+        html: ['text/html']
+
+    # PATCH follows JSON Merge Patch semantics.
+    patch_formats:
+        json: ['application/merge-patch+json']
+
+    # RFC 7807 / Problem Details errors, with JSON-LD errors available too.
+    error_formats:
+        jsonproblem:
+            mime_types: ['application/problem+json']
+        jsonld:
+            mime_types: ['application/ld+json']
+
+    # Only classes declared as API resources (e.g. with #[ApiResource]) are
+    # exposed. Mapping a directory does not automatically expose every entity.
+    mapping:
+        paths:
+            - '%kernel.project_dir%/src/Entity'
+
     defaults:
+        # API Platform metadata: this does not replace the Symfony firewall's
+        # stateless setting in security.yaml.
         stateless: true
+
+        pagination_enabled: true
+        pagination_items_per_page: 25
+        pagination_maximum_items_per_page: 100
+        pagination_client_enabled: true
+        pagination_client_items_per_page: true
+        pagination_client_partial: false
+        pagination_partial: false
+
+        # Keep client-specific responses from being keyed only by URL.
+        # Resource/operation security still needs to be declared explicitly.
         cache_headers:
             vary: ['Content-Type', 'Authorization', 'Origin']
