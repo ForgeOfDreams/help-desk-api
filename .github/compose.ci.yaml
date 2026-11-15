@@ -1,0 +1,29 @@
+---
+# This overlay is used only by GitHub Actions. It must not be part of the local
+# default Compose invocation or production configuration.
+services:
+  php:
+    environment:
+      APP_ENV: dev
+      APP_SECRET: ci-only-not-a-production-secret
+      APP_FRONTEND_URL: ${APP_FRONTEND_URL:-http://localhost:5173}
+      APP_DEFAULT_SENDER: ${APP_DEFAULT_SENDER:-no-reply@example.test}
+      MAILER_DSN: ${MAILER_DSN:-smtp://mailer:1025}
+      JWT_SECRET_KEY: /app/config/jwt/private.pem
+      JWT_PUBLIC_KEY: /app/config/jwt/public.pem
+      JWT_PASSPHRASE: ''
+    depends_on:
+      mailer:
+        condition: service_started
+
+  database:
+    volumes:
+      - ./.github/mysql-ci-init.sql:/docker-entrypoint-initdb.d/10-ci-test-db.sql:ro
+    healthcheck:
+      # CMD form deliberately avoids shell interpolation of MYSQL_ROOT_PASSWORD.
+      # mysqladmin ping checks server availability, not application credentials.
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s

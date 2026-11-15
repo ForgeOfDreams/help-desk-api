@@ -1,0 +1,100 @@
+---
+name: Release container image
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions: {}
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify release commit
+    uses: ./.github/workflows/ci.yaml
+    permissions:
+      contents: read
+      statuses: write
+
+  publish:
+    name: Build and publish to GHCR
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Validate release tag
+        shell: bash
+        run: |
+          if [[ ! "$GITHUB_REF_NAME" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Expected a stable semantic version tag such as v1.2.3; got: $GITHUB_REF_NAME" >&2
+            exit 1
+          fi
+
+      - name: Decide whether this is the newest stable version
+        id: release_tags
+        shell: bash
+        run: |
+          set -euo pipefail
+          newest_tag="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' | grep -E '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' | sort -V | tail -n 1 || true)"
+          if [[ "$newest_tag" == "$GITHUB_REF_NAME" ]]; then
+            echo "publish_latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish_latest=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Log in to GitHub Container Registry
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+
+      - name: Build and push production image
+        shell: bash
+        env:
+          PUBLISH_LATEST: ${{ steps.release_tags.outputs.publish_latest }}
+        run: |
+          set -euo pipefail
+          docker buildx version
+          docker buildx create --name helpdesk-release-builder --driver docker-container --use
+          docker buildx inspect --bootstrap
+          IMAGE_NAME="ghcr.io/${GITHUB_REPOSITORY,,}"
+          SOURCE_URL="https://github.com/${GITHUB_REPOSITORY}"
+
+          TAG_ARGS=(--tag "${IMAGE_NAME}:${GITHUB_REF_NAME}")
+          if [[ "${PUBLISH_LATEST}" == "true" ]]; then
+            TAG_ARGS+=(--tag "${IMAGE_NAME}:latest")
+          fi
+
+          docker buildx build \
+            --file .docker/Dockerfile \
+            --target frankenphp_prod \
+            --pull \
+            --push \
+            --sbom=true \
+            --provenance=mode=max \
+            --label "org.opencontainers.image.source=${SOURCE_URL}" \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            --label "org.opencontainers.image.version=${GITHUB_REF_NAME}" \
+            "${TAG_ARGS[@]}" \
+            .
+
+      - name: Log out from GitHub Container Registry
+        if: always()
+        run: docker logout ghcr.io
+
+      - name: Remove Buildx builder
+        if: always()
+        run: docker buildx rm helpdesk-release-builder || true
