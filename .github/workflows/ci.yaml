@@ -5,80 +5,165 @@ on:
   push:
     branches:
       - main
-  pull_request: ~
-  workflow_dispatch: ~
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+  workflow_call:
+  schedule:
+    - cron: '23 4 * * 1'
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/v') }}
 
 jobs:
-  tests:
-    name: Tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-      - name: Build Docker images
-        uses: docker/bake-action@v7
-        with:
-          pull: true
-          load: true
-          source: .
-          files: |
-            compose.yaml
-            compose.override.yaml
-          set: |
-            *.cache-from=type=gha,scope=${{github.ref}}
-            *.cache-from=type=gha,scope=refs/heads/main
-            *.cache-to=type=gha,scope=${{github.ref}},mode=max
-      - name: Start services
-        run: docker compose up --wait --no-build
-      - name: Check HTTP reachability
-        run: curl -v --fail-with-body http://localhost
-      # Uncomment when the homepage is configured, or change the path to check
-      # - name: Check HTTPS reachability
-      #   run: curl -v --insecure --fail-with-body https://localhost
-      - name: Check Mercure reachability
-        run: curl -vI --insecure --fail-with-body https://localhost/.well-known/mercure?match=test
-      # Uncomment if Doctrine ORM is installed
-      - name: Create test database
-        run: docker compose exec -T php bin/console -e test doctrine:database:create
-      # Uncomment if Doctrine Migrations is installed
-      # - name: Run migrations
-      #   run: docker compose exec -T php bin/console -e test doctrine:migrations:migrate --no-interaction
-      # Uncomment if PHPUnit is installed
-      - name: Run PHPUnit
-        run: docker compose exec -T php bin/phpunit
-      # Uncomment if Doctrine ORM is installed
-      # - name: Doctrine Schema Validator
-      #   run: docker compose exec -T php bin/console -e test doctrine:schema:validate
   lint:
     name: Lint
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: read
       statuses: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
-      - name: Lint Code Base
-        uses: super-linter/super-linter/slim@v9
+          fetch-depth: 0
+
+      - name: Lint repository
+        uses: super-linter/super-linter/slim@2da136927bd4a73596db63044b504547c62cb854 # v9.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: main
+          VALIDATE_ALL_CODEBASE: true
           VALIDATE_CHECKOV: false
           VALIDATE_TRIVY: false
           VALIDATE_BIOME_FORMAT: false
           VALIDATE_BIOME_LINT: false
           VALIDATE_PYTHON_BLACK: false
+          VALIDATE_GITHUB_ACTIONS: true
+          
+          VALIDATE_JSON: true
+          VALIDATE_MARKDOWN: true
+          VALIDATE_YAML: true
+          VALIDATE_DOCKERFILE_HADOLINT: true
+
+          VALIDATE_PHP: false
+          VALIDATE_PHP_BUILTIN: false
+          VALIDATE_PHP_PHPCS: false
+          VALIDATE_PHP_PHPSTAN: false
+          VALIDATE_PHP_PSALM: false
+
+  workflow-security:
+    name: GitHub Actions security
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Analyze workflows with zizmor
+        uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
+        with:
+          advanced-security: false
+          persona: pedantic
+
+  production-image:
+    name: Production image build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build production target without publishing
+        run: >-
+          docker build --pull --file .docker/Dockerfile
+          --target frankenphp_prod --tag help-desk-api:ci .
+
+  integration:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Use an extra Compose overlay for deterministic CI-only values.
+      # GitHub-hosted runners are Linux, so Compose uses ':' as the file separator.
+      COMPOSE_FILE: compose.yaml:compose.override.yaml:.github/compose.ci.yaml
+      MYSQL_VERSION: '8.4'
+      MYSQL_DATABASE: help_desk
+      MYSQL_USER: helpdesk_ci
+      MYSQL_PASSWORD: helpdesk_ci_password
+      MYSQL_ROOT_PASSWORD: helpdesk_ci_root_password
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_0900_ai_ci
+      APP_FRONTEND_URL: http://localhost:5173
+      APP_DEFAULT_SENDER: no-reply@example.test
+      MAILER_DSN: smtp://mailer:1025
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate Docker Compose configuration
+        run: docker compose config --quiet
+
+      - name: Build development image
+        run: docker compose build --pull php
+
+      - name: Generate ephemeral JWT key pair before startup
+        run: docker compose run --rm --no-deps php php bin/console lexik:jwt:generate-keypair --skip-if-exists --no-interaction
+
+      - name: Start application and dependencies
+        run: docker compose up --detach --wait --wait-timeout 180
+
+      - name: Validate Composer metadata
+        run: docker compose exec -T php composer validate --strict
+
+      - name: Audit Composer dependencies
+        run: docker compose exec -T php composer audit --locked --no-interaction
+
+      - name: Lint Symfony configuration
+        run: |
+          docker compose exec -T php php bin/console lint:yaml config
+          docker compose exec -T php php bin/console lint:container
+
+      - name: Verify test database exists
+        run: docker compose exec -T php php bin/console --env=test doctrine:database:create --if-not-exists --no-interaction
+
+      - name: Synchronize migration metadata
+        run: docker compose exec -T php php bin/console --env=test doctrine:migrations:sync-metadata-storage --no-interaction
+
+      - name: Apply database migrations
+        run: docker compose exec -T php php bin/console --env=test doctrine:migrations:migrate --no-interaction
+
+      - name: Validate Doctrine schema
+        run: docker compose exec -T php php bin/console --env=test doctrine:schema:validate
+
+      - name: Run PHPUnit
+        run: docker compose exec -T php php bin/phpunit
+
+      - name: Check API documentation endpoint
+        run: curl --insecure --fail --silent --show-error --retry 10 --retry-connrefused --retry-delay 2 https://localhost/api/docs --output /dev/null
+
+      - name: Print service logs on failure
+        if: failure()
+        run: docker compose logs --no-color --tail=250
+
+      - name: Stop services and remove CI volumes
+        if: always()
+        run: docker compose down --volumes --remove-orphans

@@ -9,6 +9,9 @@ services:
       APP_FRONTEND_URL: ${APP_FRONTEND_URL:-http://localhost:5173}
       APP_DEFAULT_SENDER: ${APP_DEFAULT_SENDER:-no-reply@example.test}
       MAILER_DSN: ${MAILER_DSN:-smtp://mailer:1025}
+      # Override the development DATABASE_URL so every --env=test command and
+      # the PHPUnit process use the isolated database created by mysql-ci-init.sql.
+      DATABASE_URL: "mysql://${MYSQL_USER:-helpdesk_ci}:${MYSQL_PASSWORD:-helpdesk_ci_password}@database:3306/help_desk_test?serverVersion=${MYSQL_VERSION:-8.4}&charset=${MYSQL_CHARSET:-utf8mb4}"
       JWT_SECRET_KEY: /app/config/jwt/private.pem
       JWT_PUBLIC_KEY: /app/config/jwt/public.pem
       JWT_PASSPHRASE: ''
