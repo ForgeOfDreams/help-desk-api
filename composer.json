@@ -1,4 +1,6 @@
 {
+    "name": "forgeofdreams/help-desk-api",
+    "description": "Help Desk API built with Symfony 8 and API Platform.",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
