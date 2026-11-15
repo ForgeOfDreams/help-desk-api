@@ -6,11 +6,10 @@ namespace App\State\Processor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Dto\Input\RegisterUserInput;
 use App\ApiResource\AuthActionResult;
+use App\Dto\Input\RegisterUserInput;
 use App\Service\Auth\AuthRateLimit;
 use App\Service\Auth\UserOnboardingService;
-use UnexpectedValueException;
 
 /** @implements ProcessorInterface<RegisterUserInput, AuthActionResult> */
 final readonly class RegisterUserProcessor implements ProcessorInterface
@@ -24,7 +23,7 @@ final readonly class RegisterUserProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): AuthActionResult
     {
         if (!$data instanceof RegisterUserInput) {
-            throw new UnexpectedValueException('Expected RegisterUserInput.');
+            throw new \UnexpectedValueException('Expected RegisterUserInput.');
         }
 
         $this->rateLimit->consumeRegistrationAttempt();

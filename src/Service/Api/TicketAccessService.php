@@ -52,12 +52,12 @@ final readonly class TicketAccessService
             }
 
             $ticketTeam = $ticket->getTeam();
-            if ($ticketTeam !== null && $this->belongsToTeam($user, $ticketTeam)) {
+            if (null !== $ticketTeam && $this->belongsToTeam($user, $ticketTeam)) {
                 return;
             }
 
             // The unassigned general queue is visible to support agents.
-            if ($ticketTeam === null && $ticket->getAssignee() === null) {
+            if (null === $ticketTeam && null === $ticket->getAssignee()) {
                 return;
             }
         }
@@ -98,7 +98,7 @@ final readonly class TicketAccessService
 
         foreach ($user->getTeamMemberships() as $membership) {
             $memberTeam = $membership->getTeam();
-            if ($memberTeam !== null && $memberTeam->getId() !== null && $team->getId() !== null
+            if (null !== $memberTeam && null !== $memberTeam->getId() && null !== $team->getId()
                 && $memberTeam->getId()->toRfc4122() === $team->getId()->toRfc4122()) {
                 return true;
             }
@@ -109,9 +109,9 @@ final readonly class TicketAccessService
 
     private function sameId(?User $left, User $right): bool
     {
-        return $left !== null
-            && $left->getId() !== null
-            && $right->getId() !== null
+        return null !== $left
+            && null !== $left->getId()
+            && null !== $right->getId()
             && $left->getId()->toRfc4122() === $right->getId()->toRfc4122();
     }
 }

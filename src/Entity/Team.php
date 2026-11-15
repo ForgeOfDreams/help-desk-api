@@ -71,7 +71,7 @@ class Team extends AbstractTimestampedEntity
 
     public function setDescription(?string $description): self
     {
-        $this->description = $description === null ? null : trim($description);
+        $this->description = null === $description ? null : trim($description);
 
         return $this;
     }

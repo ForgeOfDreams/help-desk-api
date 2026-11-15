@@ -7,8 +7,6 @@ namespace App\Service\Api;
 use ApiPlatform\State\Pagination\PaginatorInterface;
 use ApiPlatform\State\Pagination\TraversablePaginator;
 use Doctrine\ORM\QueryBuilder;
-use InvalidArgumentException;
-use ArrayIterator;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 final readonly class ApiPaginator
@@ -16,6 +14,7 @@ final readonly class ApiPaginator
     public function __construct(private RequestStack $requestStack)
     {
     }
+
     /**
      * Executes a paginated Doctrine query and maps each result to a public API DTO.
      * The hard limit is enforced server-side even when the client passes itemsPerPage.
@@ -30,7 +29,7 @@ final readonly class ApiPaginator
         $itemsPerPage = min(100, $this->positiveInteger($filters['itemsPerPage'] ?? $defaultItemsPerPage, $defaultItemsPerPage));
 
         $rootAliases = $queryBuilder->getRootAliases();
-        $rootAlias = $rootAliases[0] ?? throw new InvalidArgumentException('The query builder must have a root alias.');
+        $rootAlias = $rootAliases[0] ?? throw new \InvalidArgumentException('The query builder must have a root alias.');
 
         $countQueryBuilder = clone $queryBuilder;
         $countQueryBuilder
@@ -49,7 +48,7 @@ final readonly class ApiPaginator
         $mappedItems = array_map($mapper, $items);
 
         return new TraversablePaginator(
-            new ArrayIterator($mappedItems),
+            new \ArrayIterator($mappedItems),
             $page,
             $itemsPerPage,
             $totalItems,
@@ -58,7 +57,7 @@ final readonly class ApiPaginator
 
     private function positiveInteger(mixed $value, int $fallback): int
     {
-        if (filter_var($value, FILTER_VALIDATE_INT) === false) {
+        if (false === filter_var($value, FILTER_VALIDATE_INT)) {
             return $fallback;
         }
 

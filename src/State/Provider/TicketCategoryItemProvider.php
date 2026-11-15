@@ -28,7 +28,7 @@ final readonly class TicketCategoryItemProvider implements ProviderInterface
             $uuid = null;
         }
 
-        $category = $uuid === null ? null : $this->categories->find($uuid);
+        $category = null === $uuid ? null : $this->categories->find($uuid);
         if (!$category instanceof TicketCategory || !$category->isActive()) {
             throw new NotFoundHttpException('Ticket category not found.');
         }

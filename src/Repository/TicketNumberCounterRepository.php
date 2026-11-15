@@ -7,7 +7,6 @@ namespace App\Repository;
 use App\Entity\TicketNumberCounter;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\Persistence\ManagerRegistry;
-use RuntimeException;
 
 /** @extends AbstractRepository<TicketNumberCounter> */
 final class TicketNumberCounterRepository extends AbstractRepository
@@ -26,7 +25,7 @@ final class TicketNumberCounterRepository extends AbstractRepository
     public function nextValue(string $name = 'ticket'): string
     {
         $name = trim($name);
-        if ($name === '') {
+        if ('' === $name) {
             throw new \InvalidArgumentException('Counter name cannot be empty.');
         }
 
@@ -42,8 +41,8 @@ final class TicketNumberCounterRepository extends AbstractRepository
         );
 
         $value = $connection->fetchOne('SELECT LAST_INSERT_ID()');
-        if (!is_numeric($value) || (string) $value === '0') {
-            throw new RuntimeException('Could not allocate the next ticket number.');
+        if (!is_numeric($value) || '0' === (string) $value) {
+            throw new \RuntimeException('Could not allocate the next ticket number.');
         }
 
         return (string) $value;

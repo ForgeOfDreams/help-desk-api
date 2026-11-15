@@ -26,7 +26,7 @@ class TicketNumberCounter
     public function setCounterName(string $counterName): self
     {
         $counterName = trim($counterName);
-        if ($counterName === '') {
+        if ('' === $counterName) {
             throw new \InvalidArgumentException('Counter name cannot be empty.');
         }
         $this->counterName = $counterName;

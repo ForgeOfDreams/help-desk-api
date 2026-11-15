@@ -36,7 +36,7 @@ final class TicketRepository extends AbstractRepository
             ->orderBy('t.createdAt', 'DESC')
             ->setMaxResults($this->normalizeLimit($limit));
 
-        if ($status !== null) {
+        if (null !== $status) {
             $qb->andWhere('t.status = :status')->setParameter('status', $status->value);
         }
 
@@ -55,7 +55,7 @@ final class TicketRepository extends AbstractRepository
             ->orderBy('t.updatedAt', 'DESC')
             ->setMaxResults($this->normalizeLimit($limit));
 
-        if ($status !== null) {
+        if (null !== $status) {
             $qb->andWhere('t.status = :status')->setParameter('status', $status->value);
         }
 
@@ -86,13 +86,13 @@ final class TicketRepository extends AbstractRepository
             ->addOrderBy('t.updatedAt', 'DESC')
             ->setMaxResults($this->normalizeLimit($limit));
 
-        if ($team !== null) {
+        if (null !== $team) {
             $qb->andWhere('t.team = :team')->setParameter('team', $team);
         }
-        if ($status !== null) {
+        if (null !== $status) {
             $qb->andWhere('t.status = :status')->setParameter('status', $status->value);
         }
-        if ($priority !== null) {
+        if (null !== $priority) {
             $qb->andWhere('t.priority = :priority')->setParameter('priority', $priority->value);
         }
 

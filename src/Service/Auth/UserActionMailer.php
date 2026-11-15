@@ -7,8 +7,8 @@ namespace App\Service\Auth;
 use App\Entity\User;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
 final readonly class UserActionMailer
@@ -52,7 +52,7 @@ final readonly class UserActionMailer
     private function buildUrl(string $path, string $rawToken): string
     {
         // The fragment is not sent to the frontend web server in HTTP requests/logs.
-        return rtrim($this->frontendUrl, '/') . $path . '#token=' . rawurlencode($rawToken);
+        return rtrim($this->frontendUrl, '/').$path.'#token='.rawurlencode($rawToken);
     }
 
     private function send(
@@ -72,7 +72,7 @@ final readonly class UserActionMailer
             ->from($this->senderEmail)
             ->to($to)
             ->subject($subject)
-            ->text($headline . "\n\n" . $body . "\n\n" . $actionLabel . ': ' . $actionUrl . "\n\nIf you did not expect this message, you can ignore it.")
+            ->text($headline."\n\n".$body."\n\n".$actionLabel.': '.$actionUrl."\n\nIf you did not expect this message, you can ignore it.")
             ->html(sprintf(
                 '<!doctype html><html lang="en"><body><h1>%s</h1><p>%s</p><p><a href="%s">%s</a></p><p>If you did not expect this message, you can ignore it.</p></body></html>',
                 $safeHeadline,

@@ -6,14 +6,10 @@ namespace App\Entity;
 
 use App\Enum\TicketPriority;
 use App\Enum\TicketStatus;
-use DateTimeImmutable;
-use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use InvalidArgumentException;
-use LogicException;
 
 #[ORM\Entity(repositoryClass: \App\Repository\TicketRepository::class)]
 #[ORM\Table(
@@ -22,7 +18,7 @@ use LogicException;
         new ORM\Index(name: 'idx_tickets_requester_created', columns: ['requester_id', 'created_at']),
         new ORM\Index(name: 'idx_tickets_assignee_status', columns: ['assignee_id', 'status', 'updated_at']),
         new ORM\Index(name: 'idx_tickets_team_status', columns: ['team_id', 'status', 'updated_at']),
-        new ORM\Index(name: 'idx_tickets_status_priority', columns: ['status', 'priority', 'created_at'])
+        new ORM\Index(name: 'idx_tickets_status_priority', columns: ['status', 'priority', 'created_at']),
     ]
 )]
 #[ORM\HasLifecycleCallbacks]
@@ -60,13 +56,13 @@ class Ticket extends AbstractTimestampedEntity
     private ?TicketCategory $category = null;
 
     #[ORM\Column(name: 'first_response_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?DateTimeImmutable $firstResponseAt = null;
+    private ?\DateTimeImmutable $firstResponseAt = null;
 
     #[ORM\Column(name: 'resolved_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?DateTimeImmutable $resolvedAt = null;
+    private ?\DateTimeImmutable $resolvedAt = null;
 
     #[ORM\Column(name: 'closed_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?DateTimeImmutable $closedAt = null;
+    private ?\DateTimeImmutable $closedAt = null;
 
     #[ORM\Version]
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
@@ -112,12 +108,12 @@ class Ticket extends AbstractTimestampedEntity
     public function assignTicketNumber(string|int $ticketNumber): self
     {
         $number = (string) $ticketNumber;
-        if (!ctype_digit($number) || ltrim($number, '0') === '') {
-            throw new InvalidArgumentException('Ticket number must be a positive integer.');
+        if (!ctype_digit($number) || '' === ltrim($number, '0')) {
+            throw new \InvalidArgumentException('Ticket number must be a positive integer.');
         }
         $number = ltrim($number, '0');
-        if ($this->ticketNumber !== null && $this->ticketNumber !== $number) {
-            throw new LogicException('A ticket number cannot be changed after assignment.');
+        if (null !== $this->ticketNumber && $this->ticketNumber !== $number) {
+            throw new \LogicException('A ticket number cannot be changed after assignment.');
         }
 
         $this->ticketNumber = $number;
@@ -133,8 +129,8 @@ class Ticket extends AbstractTimestampedEntity
     public function setSubject(string $subject): self
     {
         $subject = trim($subject);
-        if ($subject === '') {
-            throw new InvalidArgumentException('Ticket subject cannot be empty.');
+        if ('' === $subject) {
+            throw new \InvalidArgumentException('Ticket subject cannot be empty.');
         }
         $this->subject = $subject;
 
@@ -164,13 +160,13 @@ class Ticket extends AbstractTimestampedEntity
             return $this;
         }
 
-        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->status = $status;
 
-        if ($status === TicketStatus::Resolved) {
+        if (TicketStatus::Resolved === $status) {
             $this->resolvedAt ??= $now;
             $this->closedAt = null;
-        } elseif ($status === TicketStatus::Closed) {
+        } elseif (TicketStatus::Closed === $status) {
             $this->resolvedAt ??= $now;
             $this->closedAt = $now;
         } else {
@@ -207,7 +203,7 @@ class Ticket extends AbstractTimestampedEntity
         $previous = $this->requester;
         $this->requester = $requester;
         $previous?->getRequestedTickets()->removeElement($this);
-        if ($requester !== null && !$requester->getRequestedTickets()->contains($this)) {
+        if (null !== $requester && !$requester->getRequestedTickets()->contains($this)) {
             $requester->getRequestedTickets()->add($this);
         }
 
@@ -228,7 +224,7 @@ class Ticket extends AbstractTimestampedEntity
         $previous = $this->assignee;
         $this->assignee = $assignee;
         $previous?->getAssignedTickets()->removeElement($this);
-        if ($assignee !== null && !$assignee->getAssignedTickets()->contains($this)) {
+        if (null !== $assignee && !$assignee->getAssignedTickets()->contains($this)) {
             $assignee->getAssignedTickets()->add($this);
         }
 
@@ -249,7 +245,7 @@ class Ticket extends AbstractTimestampedEntity
         $previous = $this->team;
         $this->team = $team;
         $previous?->getTickets()->removeElement($this);
-        if ($team !== null && !$team->getTickets()->contains($this)) {
+        if (null !== $team && !$team->getTickets()->contains($this)) {
             $team->getTickets()->add($this);
         }
 
@@ -270,31 +266,31 @@ class Ticket extends AbstractTimestampedEntity
         $previous = $this->category;
         $this->category = $category;
         $previous?->getTickets()->removeElement($this);
-        if ($category !== null && !$category->getTickets()->contains($this)) {
+        if (null !== $category && !$category->getTickets()->contains($this)) {
             $category->getTickets()->add($this);
         }
 
         return $this;
     }
 
-    public function getFirstResponseAt(): ?DateTimeImmutable
+    public function getFirstResponseAt(): ?\DateTimeImmutable
     {
         return $this->firstResponseAt;
     }
 
-    public function markFirstResponse(?DateTimeImmutable $at = null): self
+    public function markFirstResponse(?\DateTimeImmutable $at = null): self
     {
-        $this->firstResponseAt ??= $at ?? new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $this->firstResponseAt ??= $at ?? new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
         return $this;
     }
 
-    public function getResolvedAt(): ?DateTimeImmutable
+    public function getResolvedAt(): ?\DateTimeImmutable
     {
         return $this->resolvedAt;
     }
 
-    public function getClosedAt(): ?DateTimeImmutable
+    public function getClosedAt(): ?\DateTimeImmutable
     {
         return $this->closedAt;
     }
@@ -337,11 +333,11 @@ class Ticket extends AbstractTimestampedEntity
     #[ORM\PrePersist]
     public function assertTicketNumberAssigned(): void
     {
-        if ($this->ticketNumber === null) {
-            throw new LogicException('Assign a ticket number using TicketNumberCounterRepository before persisting the ticket.');
+        if (null === $this->ticketNumber) {
+            throw new \LogicException('Assign a ticket number using TicketNumberCounterRepository before persisting the ticket.');
         }
-        if ($this->requester === null) {
-            throw new LogicException('A ticket requester is required.');
+        if (null === $this->requester) {
+            throw new \LogicException('A ticket requester is required.');
         }
     }
 }

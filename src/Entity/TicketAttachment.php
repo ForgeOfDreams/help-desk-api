@@ -56,7 +56,7 @@ class TicketAttachment extends AbstractCreatedAtEntity
         $previous = $this->ticket;
         $this->ticket = $ticket;
         $previous?->getAttachments()->removeElement($this);
-        if ($ticket !== null && !$ticket->getAttachments()->contains($this)) {
+        if (null !== $ticket && !$ticket->getAttachments()->contains($this)) {
             $ticket->getAttachments()->add($this);
         }
 
@@ -77,10 +77,10 @@ class TicketAttachment extends AbstractCreatedAtEntity
         $previous = $this->comment;
         $this->comment = $comment;
         $previous?->getAttachments()->removeElement($this);
-        if ($comment !== null && !$comment->getAttachments()->contains($this)) {
+        if (null !== $comment && !$comment->getAttachments()->contains($this)) {
             $comment->getAttachments()->add($this);
         }
-        if ($comment !== null && $comment->getTicket() !== null && $this->ticket !== $comment->getTicket()) {
+        if (null !== $comment && null !== $comment->getTicket() && $this->ticket !== $comment->getTicket()) {
             $this->setTicket($comment->getTicket());
         }
 
@@ -101,7 +101,7 @@ class TicketAttachment extends AbstractCreatedAtEntity
         $previous = $this->uploadedBy;
         $this->uploadedBy = $uploadedBy;
         $previous?->getUploadedAttachments()->removeElement($this);
-        if ($uploadedBy !== null && !$uploadedBy->getUploadedAttachments()->contains($this)) {
+        if (null !== $uploadedBy && !$uploadedBy->getUploadedAttachments()->contains($this)) {
             $uploadedBy->getUploadedAttachments()->add($this);
         }
 
@@ -116,7 +116,7 @@ class TicketAttachment extends AbstractCreatedAtEntity
     public function setStorageKey(string $storageKey): self
     {
         $storageKey = trim($storageKey);
-        if ($storageKey === '') {
+        if ('' === $storageKey) {
             throw new \InvalidArgumentException('Storage key cannot be empty.');
         }
         $this->storageKey = $storageKey;
@@ -170,10 +170,10 @@ class TicketAttachment extends AbstractCreatedAtEntity
 
     public function setChecksumSha256(?string $checksumSha256): self
     {
-        if ($checksumSha256 !== null && !preg_match('/^[a-f0-9]{64}$/i', $checksumSha256)) {
+        if (null !== $checksumSha256 && !preg_match('/^[a-f0-9]{64}$/i', $checksumSha256)) {
             throw new \InvalidArgumentException('SHA-256 checksum must contain 64 hexadecimal characters.');
         }
-        $this->checksumSha256 = $checksumSha256 === null ? null : strtolower($checksumSha256);
+        $this->checksumSha256 = null === $checksumSha256 ? null : strtolower($checksumSha256);
 
         return $this;
     }

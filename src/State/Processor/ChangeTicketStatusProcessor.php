@@ -6,8 +6,8 @@ namespace App\State\Processor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Dto\Input\ChangeTicketStatusInput;
 use App\ApiResource\TicketResource;
+use App\Dto\Input\ChangeTicketStatusInput;
 use App\Entity\TicketHistory;
 use App\Entity\TicketStatusHistory;
 use App\Enum\TicketStatus;
@@ -15,7 +15,6 @@ use App\Service\Api\TicketAccessService;
 use App\Service\Api\TicketStatusTransitionPolicy;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use UnexpectedValueException;
 
 /** @implements ProcessorInterface<ChangeTicketStatusInput, TicketResource> */
 final readonly class ChangeTicketStatusProcessor implements ProcessorInterface
@@ -30,18 +29,18 @@ final readonly class ChangeTicketStatusProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
         if (!$data instanceof ChangeTicketStatusInput) {
-            throw new UnexpectedValueException('Expected ChangeTicketStatusInput.');
+            throw new \UnexpectedValueException('Expected ChangeTicketStatusInput.');
         }
 
         $id = $uriVariables['id'] ?? null;
-        if (!is_string($id) || $id === '') {
+        if (!is_string($id) || '' === $id) {
             throw new BadRequestHttpException('Ticket identifier is required.');
         }
 
         $ticket = $this->ticketAccess->getVisibleTicket($id);
         $this->ticketAccess->assertCanManage($ticket);
         $newStatus = TicketStatus::tryFrom($data->status);
-        if ($newStatus === null) {
+        if (null === $newStatus) {
             throw new BadRequestHttpException('Unsupported ticket status.');
         }
 

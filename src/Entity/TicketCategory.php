@@ -8,7 +8,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use InvalidArgumentException;
 
 #[ORM\Entity(repositoryClass: \App\Repository\TicketCategoryRepository::class)]
 #[ORM\Table(
@@ -80,7 +79,7 @@ class TicketCategory extends AbstractTimestampedEntity
 
     public function setDescription(?string $description): self
     {
-        $this->description = $description === null ? null : trim($description);
+        $this->description = null === $description ? null : trim($description);
 
         return $this;
     }
@@ -93,7 +92,7 @@ class TicketCategory extends AbstractTimestampedEntity
     public function setParent(?self $parent): self
     {
         if ($parent === $this) {
-            throw new InvalidArgumentException('A ticket category cannot be its own parent.');
+            throw new \InvalidArgumentException('A ticket category cannot be its own parent.');
         }
         if ($this->parent === $parent) {
             return $this;
@@ -102,7 +101,7 @@ class TicketCategory extends AbstractTimestampedEntity
         $previous = $this->parent;
         $this->parent = $parent;
         $previous?->getChildren()->removeElement($this);
-        if ($parent !== null && !$parent->getChildren()->contains($this)) {
+        if (null !== $parent && !$parent->getChildren()->contains($this)) {
             $parent->getChildren()->add($this);
         }
 

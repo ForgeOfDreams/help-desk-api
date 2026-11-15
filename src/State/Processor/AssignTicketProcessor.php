@@ -6,8 +6,8 @@ namespace App\State\Processor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Dto\Input\AssignTicketInput;
 use App\ApiResource\TicketResource;
+use App\Dto\Input\AssignTicketInput;
 use App\Entity\TicketHistory;
 use App\Entity\User;
 use App\Repository\UserRepository;
@@ -16,7 +16,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Uid\Uuid;
-use UnexpectedValueException;
 
 /** @implements ProcessorInterface<AssignTicketInput, TicketResource> */
 final readonly class AssignTicketProcessor implements ProcessorInterface
@@ -31,11 +30,11 @@ final readonly class AssignTicketProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
         if (!$data instanceof AssignTicketInput) {
-            throw new UnexpectedValueException('Expected AssignTicketInput.');
+            throw new \UnexpectedValueException('Expected AssignTicketInput.');
         }
 
         $ticketId = $uriVariables['id'] ?? null;
-        if (!is_string($ticketId) || $ticketId === '') {
+        if (!is_string($ticketId) || '' === $ticketId) {
             throw new BadRequestHttpException('Ticket identifier is required.');
         }
 
@@ -49,7 +48,7 @@ final readonly class AssignTicketProcessor implements ProcessorInterface
         $this->ticketAccess->assertCanManage($ticket);
 
         $assignee = $this->users->find($assigneeId);
-        if (!$assignee instanceof User || !$assignee->isActive() || $assignee->getDeletedAt() !== null) {
+        if (!$assignee instanceof User || !$assignee->isActive() || null !== $assignee->getDeletedAt()) {
             throw new NotFoundHttpException('Assignee not found.');
         }
         if (!array_intersect(['ROLE_AGENT', 'ROLE_ADMIN'], $assignee->getRoles())) {

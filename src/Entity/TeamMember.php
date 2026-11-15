@@ -45,7 +45,7 @@ class TeamMember extends AbstractTimestampedEntity
         $previous = $this->team;
         $this->team = $team;
         $previous?->getMemberships()->removeElement($this);
-        if ($team !== null && !$team->getMemberships()->contains($this)) {
+        if (null !== $team && !$team->getMemberships()->contains($this)) {
             $team->getMemberships()->add($this);
         }
 
@@ -66,7 +66,7 @@ class TeamMember extends AbstractTimestampedEntity
         $previous = $this->user;
         $this->user = $user;
         $previous?->getTeamMemberships()->removeElement($this);
-        if ($user !== null && !$user->getTeamMemberships()->contains($this)) {
+        if (null !== $user && !$user->getTeamMemberships()->contains($this)) {
             $user->getTeamMemberships()->add($this);
         }
 

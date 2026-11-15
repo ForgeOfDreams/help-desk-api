@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Enum\NotificationType;
-use DateTimeImmutable;
-use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -36,7 +34,7 @@ class Notification extends AbstractCreatedAtEntity
     private array $payload = [];
 
     #[ORM\Column(name: 'read_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?DateTimeImmutable $readAt = null;
+    private ?\DateTimeImmutable $readAt = null;
 
     /** @var Collection<int, NotificationDelivery> */
     #[ORM\OneToMany(mappedBy: 'notification', targetEntity: NotificationDelivery::class)]
@@ -61,7 +59,7 @@ class Notification extends AbstractCreatedAtEntity
         $previous = $this->recipient;
         $this->recipient = $recipient;
         $previous?->getNotifications()->removeElement($this);
-        if ($recipient !== null && !$recipient->getNotifications()->contains($this)) {
+        if (null !== $recipient && !$recipient->getNotifications()->contains($this)) {
             $recipient->getNotifications()->add($this);
         }
 
@@ -112,19 +110,19 @@ class Notification extends AbstractCreatedAtEntity
         return $this->deliveries;
     }
 
-    public function getReadAt(): ?DateTimeImmutable
+    public function getReadAt(): ?\DateTimeImmutable
     {
         return $this->readAt;
     }
 
     public function isRead(): bool
     {
-        return $this->readAt !== null;
+        return null !== $this->readAt;
     }
 
-    public function markAsRead(?DateTimeImmutable $at = null): self
+    public function markAsRead(?\DateTimeImmutable $at = null): self
     {
-        $this->readAt ??= $at ?? new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $this->readAt ??= $at ?? new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
         return $this;
     }

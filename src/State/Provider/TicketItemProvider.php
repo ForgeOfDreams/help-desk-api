@@ -19,7 +19,7 @@ final readonly class TicketItemProvider implements ProviderInterface
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
         $id = $uriVariables['id'] ?? null;
-        if (!is_string($id) || $id === '') {
+        if (!is_string($id) || '' === $id) {
             return null;
         }
 

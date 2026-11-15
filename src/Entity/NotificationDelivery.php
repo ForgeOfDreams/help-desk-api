@@ -6,8 +6,6 @@ namespace App\Entity;
 
 use App\Enum\NotificationChannel;
 use App\Enum\NotificationDeliveryStatus;
-use DateTimeImmutable;
-use DateTimeZone;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -36,7 +34,7 @@ class NotificationDelivery extends AbstractTimestampedEntity
     private ?string $lastError = null;
 
     #[ORM\Column(name: 'sent_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?DateTimeImmutable $sentAt = null;
+    private ?\DateTimeImmutable $sentAt = null;
 
     public function getNotification(): ?Notification
     {
@@ -52,7 +50,7 @@ class NotificationDelivery extends AbstractTimestampedEntity
         $previous = $this->notification;
         $this->notification = $notification;
         $previous?->getDeliveries()->removeElement($this);
-        if ($notification !== null && !$notification->getDeliveries()->contains($this)) {
+        if (null !== $notification && !$notification->getDeliveries()->contains($this)) {
             $notification->getDeliveries()->add($this);
         }
 
@@ -79,8 +77,8 @@ class NotificationDelivery extends AbstractTimestampedEntity
     public function setStatus(NotificationDeliveryStatus $status): self
     {
         $this->status = $status;
-        if ($status === NotificationDeliveryStatus::Sent) {
-            $this->sentAt ??= new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        if (NotificationDeliveryStatus::Sent === $status) {
+            $this->sentAt ??= new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
             $this->lastError = null;
         } else {
             $this->sentAt = null;
@@ -113,7 +111,7 @@ class NotificationDelivery extends AbstractTimestampedEntity
         return $this;
     }
 
-    public function getSentAt(): ?DateTimeImmutable
+    public function getSentAt(): ?\DateTimeImmutable
     {
         return $this->sentAt;
     }

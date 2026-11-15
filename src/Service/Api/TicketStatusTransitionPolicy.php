@@ -26,11 +26,7 @@ final class TicketStatusTransitionPolicy
         }
 
         if (!in_array($to->value, self::ALLOWED_TRANSITIONS[$from->value], true)) {
-            throw new UnprocessableEntityHttpException(sprintf(
-                'Status transition from "%s" to "%s" is not allowed.',
-                $from->value,
-                $to->value,
-            ));
+            throw new UnprocessableEntityHttpException(sprintf('Status transition from "%s" to "%s" is not allowed.', $from->value, $to->value));
         }
     }
 }

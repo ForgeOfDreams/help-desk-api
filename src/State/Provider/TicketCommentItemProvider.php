@@ -31,13 +31,13 @@ final readonly class TicketCommentItemProvider implements ProviderInterface
             $uuid = null;
         }
 
-        $comment = $uuid === null ? null : $this->comments->find($uuid);
-        if (!$comment instanceof TicketComment || $comment->getDeletedAt() !== null || $comment->getTicket() === null) {
+        $comment = null === $uuid ? null : $this->comments->find($uuid);
+        if (!$comment instanceof TicketComment || null !== $comment->getDeletedAt() || null === $comment->getTicket()) {
             throw new NotFoundHttpException('Comment not found.');
         }
 
         $this->ticketAccess->assertCanView($comment->getTicket());
-        if ($comment->getVisibility()->value === 'internal' && !$this->ticketAccess->canSeeInternalNotes()) {
+        if ('internal' === $comment->getVisibility()->value && !$this->ticketAccess->canSeeInternalNotes()) {
             throw new NotFoundHttpException('Comment not found.');
         }
 

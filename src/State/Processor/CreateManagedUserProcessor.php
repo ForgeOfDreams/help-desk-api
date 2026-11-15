@@ -6,13 +6,12 @@ namespace App\State\Processor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Dto\Input\CreateManagedUserInput;
 use App\ApiResource\ManagedUserView;
+use App\Dto\Input\CreateManagedUserInput;
 use App\Entity\User;
 use App\Service\Auth\UserOnboardingService;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Bundle\SecurityBundle\Security;
-use UnexpectedValueException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /** @implements ProcessorInterface<CreateManagedUserInput, ManagedUserView> */
 final readonly class CreateManagedUserProcessor implements ProcessorInterface
@@ -26,7 +25,7 @@ final readonly class CreateManagedUserProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): ManagedUserView
     {
         if (!$data instanceof CreateManagedUserInput) {
-            throw new UnexpectedValueException('Expected CreateManagedUserInput.');
+            throw new \UnexpectedValueException('Expected CreateManagedUserInput.');
         }
 
         $actor = $this->security->getUser();

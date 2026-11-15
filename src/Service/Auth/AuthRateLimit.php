@@ -23,7 +23,8 @@ final readonly class AuthRateLimit
         private RateLimiterFactoryInterface $tokenCompletionLimiter,
 
         private RequestStack $requestStack,
-    ) {}
+    ) {
+    }
 
     public function consumeRegistrationAttempt(): void
     {
@@ -43,14 +44,14 @@ final readonly class AuthRateLimit
     private function consume(RateLimiterFactory $factory, string $purpose): void
     {
         $ip = $this->requestStack->getCurrentRequest()?->getClientIp() ?? 'unknown';
-        $limit = $factory->create($purpose . ':' . $ip)->consume(1);
+        $limit = $factory->create($purpose.':'.$ip)->consume(1);
 
         if ($limit->isAccepted()) {
             return;
         }
 
         $retryAfter = $limit->getRetryAfter();
-        $retrySeconds = $retryAfter === null ? 60 : max(1, $retryAfter->getTimestamp() - time());
+        $retrySeconds = null === $retryAfter ? 60 : max(1, $retryAfter->getTimestamp() - time());
 
         throw new TooManyRequestsHttpException($retrySeconds, 'Too many authentication requests. Try again later.');
     }

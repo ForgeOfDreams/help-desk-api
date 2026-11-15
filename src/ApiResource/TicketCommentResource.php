@@ -15,7 +15,6 @@ use App\Entity\TicketComment;
 use App\State\Processor\CreateTicketCommentProcessor;
 use App\State\Provider\TicketCommentCollectionProvider;
 use App\State\Provider\TicketCommentItemProvider;
-use DateTimeImmutable;
 
 #[ApiResource(
     shortName: 'TicketComment',
@@ -58,8 +57,8 @@ final class TicketCommentResource
     public ?string $authorName = null;
     public string $body = '';
     public string $visibility = 'public';
-    public ?DateTimeImmutable $createdAt = null;
-    public ?DateTimeImmutable $updatedAt = null;
+    public ?\DateTimeImmutable $createdAt = null;
+    public ?\DateTimeImmutable $updatedAt = null;
 
     public static function fromEntity(TicketComment $comment): self
     {

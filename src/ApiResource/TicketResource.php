@@ -21,7 +21,6 @@ use App\State\Processor\ChangeTicketStatusProcessor;
 use App\State\Processor\CreateTicketProcessor;
 use App\State\Provider\TicketCollectionProvider;
 use App\State\Provider\TicketItemProvider;
-use DateTimeImmutable;
 
 #[ApiResource(
     shortName: 'Ticket',
@@ -102,11 +101,11 @@ final class TicketResource
     public ?string $categoryId = null;
     public ?string $categoryName = null;
 
-    public ?DateTimeImmutable $firstResponseAt = null;
-    public ?DateTimeImmutable $resolvedAt = null;
-    public ?DateTimeImmutable $closedAt = null;
-    public ?DateTimeImmutable $createdAt = null;
-    public ?DateTimeImmutable $updatedAt = null;
+    public ?\DateTimeImmutable $firstResponseAt = null;
+    public ?\DateTimeImmutable $resolvedAt = null;
+    public ?\DateTimeImmutable $closedAt = null;
+    public ?\DateTimeImmutable $createdAt = null;
+    public ?\DateTimeImmutable $updatedAt = null;
     public int $version = 1;
 
     public static function fromEntity(Ticket $ticket): self

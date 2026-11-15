@@ -15,7 +15,6 @@ use App\Entity\Notification;
 use App\State\Processor\MarkNotificationReadProcessor;
 use App\State\Provider\NotificationCollectionProvider;
 use App\State\Provider\NotificationItemProvider;
-use DateTimeImmutable;
 
 #[ApiResource(
     shortName: 'Notification',
@@ -63,8 +62,8 @@ final class NotificationResource
     /** @var array<string, mixed> */
     public array $payload = [];
     public bool $isRead = false;
-    public ?DateTimeImmutable $readAt = null;
-    public ?DateTimeImmutable $createdAt = null;
+    public ?\DateTimeImmutable $readAt = null;
+    public ?\DateTimeImmutable $createdAt = null;
 
     public static function fromEntity(Notification $notification): self
     {

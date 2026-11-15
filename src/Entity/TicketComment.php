@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Enum\CommentVisibility;
-use DateTimeImmutable;
-use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -35,7 +33,7 @@ class TicketComment extends AbstractTimestampedEntity
     private CommentVisibility $visibility = CommentVisibility::Public;
 
     #[ORM\Column(name: 'deleted_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?DateTimeImmutable $deletedAt = null;
+    private ?\DateTimeImmutable $deletedAt = null;
 
     /** @var Collection<int, TicketAttachment> */
     #[ORM\OneToMany(mappedBy: 'comment', targetEntity: TicketAttachment::class)]
@@ -60,7 +58,7 @@ class TicketComment extends AbstractTimestampedEntity
         $previous = $this->ticket;
         $this->ticket = $ticket;
         $previous?->getComments()->removeElement($this);
-        if ($ticket !== null && !$ticket->getComments()->contains($this)) {
+        if (null !== $ticket && !$ticket->getComments()->contains($this)) {
             $ticket->getComments()->add($this);
         }
 
@@ -81,7 +79,7 @@ class TicketComment extends AbstractTimestampedEntity
         $previous = $this->author;
         $this->author = $author;
         $previous?->getComments()->removeElement($this);
-        if ($author !== null && !$author->getComments()->contains($this)) {
+        if (null !== $author && !$author->getComments()->contains($this)) {
             $author->getComments()->add($this);
         }
 
@@ -96,7 +94,7 @@ class TicketComment extends AbstractTimestampedEntity
     public function setBody(string $body): self
     {
         $body = trim($body);
-        if ($body === '') {
+        if ('' === $body) {
             throw new \InvalidArgumentException('Comment body cannot be empty.');
         }
         $this->body = $body;
@@ -116,14 +114,14 @@ class TicketComment extends AbstractTimestampedEntity
         return $this;
     }
 
-    public function getDeletedAt(): ?DateTimeImmutable
+    public function getDeletedAt(): ?\DateTimeImmutable
     {
         return $this->deletedAt;
     }
 
-    public function softDelete(?DateTimeImmutable $at = null): self
+    public function softDelete(?\DateTimeImmutable $at = null): self
     {
-        $this->deletedAt = $at ?? new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $this->deletedAt = $at ?? new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
         return $this;
     }

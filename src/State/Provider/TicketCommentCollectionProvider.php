@@ -26,7 +26,7 @@ final readonly class TicketCommentCollectionProvider implements ProviderInterfac
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
         $ticketId = $uriVariables['ticketId'] ?? null;
-        if (!is_string($ticketId) || $ticketId === '') {
+        if (!is_string($ticketId) || '' === $ticketId) {
             throw new NotFoundHttpException('Ticket not found.');
         }
         $ticket = $this->ticketAccess->getVisibleTicket($ticketId);

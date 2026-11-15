@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use DateTimeImmutable;
-use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -31,10 +29,10 @@ class User extends AbstractTimestampedEntity implements UserInterface, PasswordA
     private bool $isActive = true;
 
     #[ORM\Column(name: 'email_verified_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?DateTimeImmutable $emailVerifiedAt = null;
+    private ?\DateTimeImmutable $emailVerifiedAt = null;
 
     #[ORM\Column(name: 'deleted_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?DateTimeImmutable $deletedAt = null;
+    private ?\DateTimeImmutable $deletedAt = null;
 
     /** @var Collection<int, Role> */
     #[ORM\ManyToMany(targetEntity: Role::class, inversedBy: 'users')]
@@ -175,27 +173,27 @@ class User extends AbstractTimestampedEntity implements UserInterface, PasswordA
         return $this;
     }
 
-    public function getEmailVerifiedAt(): ?DateTimeImmutable
+    public function getEmailVerifiedAt(): ?\DateTimeImmutable
     {
         return $this->emailVerifiedAt;
     }
 
-    public function setEmailVerifiedAt(?DateTimeImmutable $emailVerifiedAt): self
+    public function setEmailVerifiedAt(?\DateTimeImmutable $emailVerifiedAt): self
     {
         $this->emailVerifiedAt = $emailVerifiedAt;
 
         return $this;
     }
 
-    public function getDeletedAt(): ?DateTimeImmutable
+    public function getDeletedAt(): ?\DateTimeImmutable
     {
         return $this->deletedAt;
     }
 
-    public function deactivateSoftly(?DateTimeImmutable $at = null): self
+    public function deactivateSoftly(?\DateTimeImmutable $at = null): self
     {
         $this->isActive = false;
-        $this->deletedAt = $at ?? new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $this->deletedAt = $at ?? new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
         return $this;
     }

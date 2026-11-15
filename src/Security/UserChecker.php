@@ -21,7 +21,7 @@ final class UserChecker implements UserCheckerInterface
             return;
         }
 
-        if (!$user->isActive() || $user->getDeletedAt() !== null) {
+        if (!$user->isActive() || null !== $user->getDeletedAt()) {
             throw new CustomUserMessageAccountStatusException('This account is not available.');
         }
     }

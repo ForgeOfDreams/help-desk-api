@@ -6,15 +6,14 @@ namespace App\State\Processor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Dto\Input\ChangeOwnPasswordInput;
 use App\ApiResource\AuthActionResult;
+use App\Dto\Input\ChangeOwnPasswordInput;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Bundle\SecurityBundle\Security;
-use UnexpectedValueException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /** @implements ProcessorInterface<ChangeOwnPasswordInput, AuthActionResult> */
 final readonly class ChangeOwnPasswordProcessor implements ProcessorInterface
@@ -29,7 +28,7 @@ final readonly class ChangeOwnPasswordProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): AuthActionResult
     {
         if (!$data instanceof ChangeOwnPasswordInput) {
-            throw new UnexpectedValueException('Expected ChangeOwnPasswordInput.');
+            throw new \UnexpectedValueException('Expected ChangeOwnPasswordInput.');
         }
 
         $user = $this->security->getUser();

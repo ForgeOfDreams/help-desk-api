@@ -6,11 +6,10 @@ namespace App\State\Processor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Dto\Input\ResendVerificationInput;
 use App\ApiResource\AuthActionResult;
+use App\Dto\Input\ResendVerificationInput;
 use App\Service\Auth\AuthRateLimit;
 use App\Service\Auth\UserOnboardingService;
-use UnexpectedValueException;
 
 /** @implements ProcessorInterface<ResendVerificationInput, AuthActionResult> */
 final readonly class ResendVerificationProcessor implements ProcessorInterface
@@ -24,7 +23,7 @@ final readonly class ResendVerificationProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): AuthActionResult
     {
         if (!$data instanceof ResendVerificationInput) {
-            throw new UnexpectedValueException('Expected ResendVerificationInput.');
+            throw new \UnexpectedValueException('Expected ResendVerificationInput.');
         }
 
         $this->rateLimit->consumeResendAttempt();

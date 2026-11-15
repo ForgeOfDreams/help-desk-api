@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\ApiResource;
 
 use App\Entity\User;
-use DateTimeImmutable;
 
 final readonly class ManagedUserView
 {
@@ -16,8 +15,8 @@ final readonly class ManagedUserView
         public string $displayName,
         public array $roles,
         public bool $isActive,
-        public ?DateTimeImmutable $emailVerifiedAt,
-        public ?DateTimeImmutable $createdAt,
+        public ?\DateTimeImmutable $emailVerifiedAt,
+        public ?\DateTimeImmutable $createdAt,
     ) {
     }
 

@@ -37,7 +37,7 @@ class TicketWatcher extends AbstractCreatedAtEntity
         $previous = $this->ticket;
         $this->ticket = $ticket;
         $previous?->getWatchers()->removeElement($this);
-        if ($ticket !== null && !$ticket->getWatchers()->contains($this)) {
+        if (null !== $ticket && !$ticket->getWatchers()->contains($this)) {
             $ticket->getWatchers()->add($this);
         }
 

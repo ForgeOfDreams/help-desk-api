@@ -6,8 +6,8 @@ namespace App\State\Processor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Dto\Input\CreateTicketCommentInput;
 use App\ApiResource\TicketCommentResource;
+use App\Dto\Input\CreateTicketCommentInput;
 use App\Entity\TicketComment;
 use App\Entity\TicketHistory;
 use App\Enum\CommentVisibility;
@@ -15,7 +15,6 @@ use App\Service\Api\TicketAccessService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use UnexpectedValueException;
 
 /** @implements ProcessorInterface<CreateTicketCommentInput, TicketCommentResource> */
 final readonly class CreateTicketCommentProcessor implements ProcessorInterface
@@ -29,20 +28,20 @@ final readonly class CreateTicketCommentProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
         if (!$data instanceof CreateTicketCommentInput) {
-            throw new UnexpectedValueException('Expected CreateTicketCommentInput.');
+            throw new \UnexpectedValueException('Expected CreateTicketCommentInput.');
         }
         $ticketId = $uriVariables['ticketId'] ?? null;
-        if (!is_string($ticketId) || $ticketId === '') {
+        if (!is_string($ticketId) || '' === $ticketId) {
             throw new BadRequestHttpException('Ticket identifier is required.');
         }
 
         $ticket = $this->ticketAccess->getVisibleTicket($ticketId);
         $author = $this->ticketAccess->currentUser();
         $visibility = CommentVisibility::tryFrom($data->visibility);
-        if ($visibility === null) {
+        if (null === $visibility) {
             throw new BadRequestHttpException('Unsupported comment visibility.');
         }
-        if ($visibility === CommentVisibility::Internal && !$this->ticketAccess->canSeeInternalNotes()) {
+        if (CommentVisibility::Internal === $visibility && !$this->ticketAccess->canSeeInternalNotes()) {
             throw new AccessDeniedHttpException('Only support agents can create internal notes.');
         }
 
@@ -53,7 +52,7 @@ final readonly class CreateTicketCommentProcessor implements ProcessorInterface
             ->setVisibility($visibility);
 
         return $this->entityManager->wrapInTransaction(function () use ($ticket, $comment, $author, $visibility): TicketCommentResource {
-            if ($this->ticketAccess->canSeeInternalNotes() && $visibility === CommentVisibility::Public) {
+            if ($this->ticketAccess->canSeeInternalNotes() && CommentVisibility::Public === $visibility) {
                 $ticket->markFirstResponse();
             }
 

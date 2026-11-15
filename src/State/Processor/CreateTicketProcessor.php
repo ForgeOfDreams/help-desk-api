@@ -6,12 +6,11 @@ namespace App\State\Processor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Dto\Input\CreateTicketInput;
 use App\ApiResource\TicketResource;
+use App\Dto\Input\CreateTicketInput;
 use App\Entity\Ticket;
 use App\Entity\TicketHistory;
 use App\Entity\TicketStatusHistory;
-use App\Entity\User;
 use App\Enum\TicketPriority;
 use App\Repository\TicketCategoryRepository;
 use App\Repository\TicketNumberCounterRepository;
@@ -19,7 +18,6 @@ use App\Service\Api\TicketAccessService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Uid\Uuid;
-use UnexpectedValueException;
 
 /** @implements ProcessorInterface<CreateTicketInput, TicketResource> */
 final readonly class CreateTicketProcessor implements ProcessorInterface
@@ -35,19 +33,19 @@ final readonly class CreateTicketProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
         if (!$data instanceof CreateTicketInput) {
-            throw new UnexpectedValueException('Expected CreateTicketInput.');
+            throw new \UnexpectedValueException('Expected CreateTicketInput.');
         }
 
         $requester = $this->access->currentUser();
         $category = null;
-        if ($data->categoryId !== null && $data->categoryId !== '') {
+        if (null !== $data->categoryId && '' !== $data->categoryId) {
             try {
                 $categoryId = Uuid::fromString($data->categoryId);
             } catch (\InvalidArgumentException) {
                 throw new NotFoundHttpException('Ticket category not found.');
             }
             $category = $this->categories->find($categoryId);
-            if ($category === null || !$category->isActive()) {
+            if (null === $category || !$category->isActive()) {
                 throw new NotFoundHttpException('Ticket category not found.');
             }
         }

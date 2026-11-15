@@ -11,8 +11,6 @@ use App\Enum\UserActionTokenPurpose;
 use App\Repository\RoleRepository;
 use App\Repository\UserActionTokenRepository;
 use App\Repository\UserRepository;
-use DateTimeImmutable;
-use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -107,7 +105,7 @@ final readonly class UserOnboardingService
                 $user->setPassword($this->passwordHasher->hashPassword($user, $temporarySecret));
                 $user->setIsActive(false)->setEmailVerifiedAt(null);
 
-                if ($roleCode === 'ROLE_AGENT') {
+                if ('ROLE_AGENT' === $roleCode) {
                     $role = $this->findOrCreateRole('ROLE_AGENT', 'Support agent');
                     $user->addRole($role);
                 }
@@ -137,7 +135,7 @@ final readonly class UserOnboardingService
         $email = self::normalizeEmail($email);
         $user = $this->users->findOneBy(['email' => $email]);
 
-        if (!$user instanceof User || $user->isActive() || $user->getEmailVerifiedAt() !== null || $user->getDeletedAt() !== null) {
+        if (!$user instanceof User || $user->isActive() || null !== $user->getEmailVerifiedAt() || null !== $user->getDeletedAt()) {
             return;
         }
 
@@ -146,13 +144,13 @@ final readonly class UserOnboardingService
             : UserActionTokenPurpose::VerifyEmail;
 
         $token = $this->entityManager->wrapInTransaction(function () use ($user, $purpose): string {
-            $rawToken = $this->issueToken($user, $purpose, $purpose === UserActionTokenPurpose::SetPassword ? 48 : 24);
+            $rawToken = $this->issueToken($user, $purpose, UserActionTokenPurpose::SetPassword === $purpose ? 48 : 24);
             $this->entityManager->flush();
 
             return $rawToken;
         });
 
-        if ($purpose === UserActionTokenPurpose::SetPassword) {
+        if (UserActionTokenPurpose::SetPassword === $purpose) {
             $this->mailer->sendSetPassword($user, $token);
         } else {
             $this->mailer->sendEmailVerification($user, $token);
@@ -170,7 +168,7 @@ final readonly class UserOnboardingService
             }
 
             $user = $token->getUser();
-            if ($user->getEmailVerifiedAt() !== null || $user->getDeletedAt() !== null) {
+            if (null !== $user->getEmailVerifiedAt() || null !== $user->getDeletedAt()) {
                 return false;
             }
 
@@ -197,7 +195,7 @@ final readonly class UserOnboardingService
             }
 
             $user = $token->getUser();
-            if ($user->isActive() || $user->getEmailVerifiedAt() !== null || $user->getDeletedAt() !== null) {
+            if ($user->isActive() || null !== $user->getEmailVerifiedAt() || null !== $user->getDeletedAt()) {
                 return false;
             }
 
@@ -217,9 +215,9 @@ final readonly class UserOnboardingService
         }
     }
 
-    private function isUsable(?UserActionToken $token, UserActionTokenPurpose $purpose, DateTimeImmutable $now): bool
+    private function isUsable(?UserActionToken $token, UserActionTokenPurpose $purpose, \DateTimeImmutable $now): bool
     {
-        return $token !== null
+        return null !== $token
             && $token->getPurpose() === $purpose
             && !$token->isConsumed()
             && !$token->isExpiredAt($now);
@@ -270,8 +268,8 @@ final readonly class UserOnboardingService
         return strtolower(trim($email));
     }
 
-    private static function utcNow(): DateTimeImmutable
+    private static function utcNow(): \DateTimeImmutable
     {
-        return new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        return new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 }

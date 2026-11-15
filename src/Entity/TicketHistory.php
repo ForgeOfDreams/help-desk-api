@@ -44,7 +44,7 @@ class TicketHistory extends AbstractCreatedAtEntity
         $previous = $this->ticket;
         $this->ticket = $ticket;
         $previous?->getHistory()->removeElement($this);
-        if ($ticket !== null && !$ticket->getHistory()->contains($this)) {
+        if (null !== $ticket && !$ticket->getHistory()->contains($this)) {
             $ticket->getHistory()->add($this);
         }
 
@@ -71,7 +71,7 @@ class TicketHistory extends AbstractCreatedAtEntity
     public function setAction(string $action): self
     {
         $action = trim($action);
-        if ($action === '') {
+        if ('' === $action) {
             throw new \InvalidArgumentException('History action cannot be empty.');
         }
         $this->action = $action;

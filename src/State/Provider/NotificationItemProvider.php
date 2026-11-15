@@ -38,7 +38,7 @@ final readonly class NotificationItemProvider implements ProviderInterface
             $uuid = null;
         }
 
-        $notification = $uuid === null ? null : $this->notifications->find($uuid);
+        $notification = null === $uuid ? null : $this->notifications->find($uuid);
         if (!$notification instanceof Notification || $notification->getRecipient()?->getId()?->toRfc4122() !== $user->getId()?->toRfc4122()) {
             throw new NotFoundHttpException('Notification not found.');
         }

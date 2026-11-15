@@ -47,7 +47,7 @@ class TicketStatusHistory extends AbstractCreatedAtEntity
         $previous = $this->ticket;
         $this->ticket = $ticket;
         $previous?->getStatusHistory()->removeElement($this);
-        if ($ticket !== null && !$ticket->getStatusHistory()->contains($this)) {
+        if (null !== $ticket && !$ticket->getStatusHistory()->contains($this)) {
             $ticket->getStatusHistory()->add($this);
         }
 
@@ -97,7 +97,7 @@ class TicketStatusHistory extends AbstractCreatedAtEntity
 
     public function setReason(?string $reason): self
     {
-        $this->reason = $reason === null ? null : trim($reason);
+        $this->reason = null === $reason ? null : trim($reason);
 
         return $this;
     }

@@ -12,8 +12,8 @@ use App\Entity\User;
 use App\Repository\NotificationRepository;
 use App\Service\Api\ApiPaginator;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /** @implements ProviderInterface<NotificationResource> */
 final readonly class NotificationCollectionProvider implements ProviderInterface

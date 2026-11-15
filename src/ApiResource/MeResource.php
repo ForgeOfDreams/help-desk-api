@@ -8,7 +8,6 @@ use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use App\State\Provider\MeProvider;
-use DateTimeImmutable;
 
 #[ApiResource(
     shortName: 'CurrentUser',
@@ -29,5 +28,5 @@ final class MeResource
     public string $displayName = '';
     /** @var list<string> */
     public array $roles = [];
-    public ?DateTimeImmutable $createdAt = null;
+    public ?\DateTimeImmutable $createdAt = null;
 }

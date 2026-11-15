@@ -31,7 +31,7 @@ final class UserRepository extends AbstractRepository
     public function searchActive(string $term, int $limit = 20): array
     {
         $term = trim($term);
-        if ($term === '') {
+        if ('' === $term) {
             return [];
         }
 
@@ -40,12 +40,11 @@ final class UserRepository extends AbstractRepository
             ->andWhere('u.deletedAt IS NULL')
             ->andWhere('(LOWER(u.email) LIKE :term OR LOWER(u.displayName) LIKE :term)')
             ->setParameter('active', true)
-            ->setParameter('term', '%' . strtolower($term) . '%')
+            ->setParameter('term', '%'.strtolower($term).'%')
             ->orderBy('u.displayName', 'ASC')
             ->addOrderBy('u.email', 'ASC')
             ->setMaxResults($this->normalizeLimit($limit))
             ->getQuery()
             ->getResult();
     }
-
 }

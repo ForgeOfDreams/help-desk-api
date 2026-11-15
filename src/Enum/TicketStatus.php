@@ -15,6 +15,6 @@ enum TicketStatus: string
 
     public function isTerminal(): bool
     {
-        return $this === self::Closed;
+        return self::Closed === $this;
     }
 }
