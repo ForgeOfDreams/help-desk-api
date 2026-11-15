@@ -1,0 +1,19 @@
+# Dependencies and generated files
+/vendor/
+/node_modules/
+/var/
+/public/build/
+/public/bundles/
+/coverage/
+/build/
+/dist/
+
+# Lockfiles are managed by their package managers; do not rewrite them manually.
+/composer.lock
+/package-lock.json
+/pnpm-lock.yaml
+/yarn.lock
+
+# Minified assets
+*.min.js
+*.min.css

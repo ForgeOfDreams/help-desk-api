@@ -16,30 +16,30 @@ services:
       #  from the bind-mount for better performance by enabling the next line:
       #- /app/vendor
     environment:
-      APP_FRONTEND_URL: "${APP_FRONTEND_URL:-http://localhost:5173}"
-      APP_DEFAULT_SENDER: "${APP_DEFAULT_SENDER:-no-reply@example.com}"
-      MAILER_DSN: "smtp://mailer:1025"
+      APP_FRONTEND_URL: '${APP_FRONTEND_URL:-http://localhost:5173}'
+      APP_DEFAULT_SENDER: '${APP_DEFAULT_SENDER:-no-reply@example.com}'
+      MAILER_DSN: 'smtp://mailer:1025'
 
       FRANKENPHP_WORKER_CONFIG: watch
       FRANKENPHP_SITE_CONFIG: hot_reload
       MERCURE_EXTRA_DIRECTIVES: playground
       # See https://xdebug.org/docs/all_settings#mode
-      XDEBUG_MODE: "${XDEBUG_MODE:-develop}"
-      APP_ENV: "${APP_ENV:-dev}"
+      XDEBUG_MODE: '${XDEBUG_MODE:-develop}'
+      APP_ENV: '${APP_ENV:-dev}'
     extra_hosts:
       # Ensure that host.docker.internal is correctly defined on Linux
       - host.docker.internal:host-gateway
     tty: true
-###> symfony/mercure-bundle ###
-###< symfony/mercure-bundle ###
+  ###> symfony/mercure-bundle ###
+  ###< symfony/mercure-bundle ###
 
-###> symfony/mailer ###
+  ###> symfony/mailer ###
   mailer:
     image: axllent/mailpit
     expose:
-      - "1025"
+      - '1025'
     ports:
-      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
+      - '127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025'
     environment:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1

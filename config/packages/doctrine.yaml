@@ -1,41 +1,38 @@
-
-    
-  
 doctrine:
-    dbal:
-        url: '%env(resolve:DATABASE_URL)%'
-        profiling_collect_backtrace: '%kernel.debug%'
+  dbal:
+    url: '%env(resolve:DATABASE_URL)%'
+    profiling_collect_backtrace: '%kernel.debug%'
 
-        # MySQL 8.4 defaults used by Doctrine SchemaTool.
-        default_table_options:
-            charset: utf8mb4
-            collation: utf8mb4_0900_ai_ci
-            engine: InnoDB
+    # MySQL 8.4 defaults used by Doctrine SchemaTool.
+    default_table_options:
+      charset: utf8mb4
+      collation: utf8mb4_0900_ai_ci
+      engine: InnoDB
 
-    orm:
-        validate_xml_mapping: true
-        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
-        auto_mapping: true
-        mappings:
-            App:
-                type: attribute
-                is_bundle: false
-                dir: '%kernel.project_dir%/src/Entity'
-                prefix: 'App\Entity'
-                alias: App
+  orm:
+    validate_xml_mapping: true
+    naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+    auto_mapping: true
+    mappings:
+      App:
+        type: attribute
+        is_bundle: false
+        dir: '%kernel.project_dir%/src/Entity'
+        prefix: 'App\Entity'
+        alias: App
 
 when@test:
-    doctrine:
-        dbal:
-            # ParaTest's TEST_TOKEN keeps concurrent test databases separate.
-            dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+  doctrine:
+    dbal:
+      # ParaTest's TEST_TOKEN keeps concurrent test databases separate.
+      dbname_suffix: '_test%env(default::TEST_TOKEN)%'
 
 when@prod:
-    doctrine:
-        orm:
-            query_cache_driver:
-                type: pool
-                pool: doctrine.system_cache_pool
-            result_cache_driver:
-                type: pool
-                pool: doctrine.result_cache_pool
+  doctrine:
+    orm:
+      query_cache_driver:
+        type: pool
+        pool: doctrine.system_cache_pool
+      result_cache_driver:
+        type: pool
+        pool: doctrine.result_cache_pool
