@@ -1,4 +1,3 @@
----
 name: CI
 
 on:
@@ -28,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      statuses: write
+      statuses: write # Required for Super-Linter to publish commit status checks.
     steps:
       - name: Checkout source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -42,23 +41,23 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           DEFAULT_BRANCH: main
           VALIDATE_ALL_CODEBASE: true
-          VALIDATE_CHECKOV: false
-          VALIDATE_TRIVY: false
-          VALIDATE_BIOME_FORMAT: false
-          VALIDATE_BIOME_LINT: false
-          VALIDATE_PYTHON_BLACK: false
+          LINTER_RULES_PATH: .github/linters
+          YAML_CONFIG_FILE: .yaml-lint.yml
+          MARKDOWN_CONFIG_FILE: .markdown-lint.yml
+          # Super-Linter handles repository/config formats. PHP dependency-aware
+          # checks run in the project's FrankenPHP container below, where the
+          # required PHP extensions match composer.lock.
+          # Super-Linter switches to opt-in mode when any VALIDATE_* is true.
+          # Keep this list true-only; mixing true and false makes v9 fail during startup.
           VALIDATE_GITHUB_ACTIONS: true
-          
           VALIDATE_JSON: true
           VALIDATE_MARKDOWN: true
           VALIDATE_YAML: true
           VALIDATE_DOCKERFILE_HADOLINT: true
-
-          VALIDATE_PHP: false
-          VALIDATE_PHP_BUILTIN: false
-          VALIDATE_PHP_PHPCS: false
-          VALIDATE_PHP_PHPSTAN: false
-          VALIDATE_PHP_PSALM: false
+          # Avoid requiring pull-requests: write just to post a PR comment.
+          ENABLE_GITHUB_ACTIONS_STEP_SUMMARY: true
+          ENABLE_GITHUB_PULL_REQUEST_SUMMARY_COMMENT: false
+          SAVE_SUPER_LINTER_SUMMARY: true
 
   workflow-security:
     name: GitHub Actions security
@@ -125,14 +124,39 @@ jobs:
       - name: Build development image
         run: docker compose build --pull php
 
-      - name: Generate ephemeral JWT key pair before startup
-        run: docker compose run --rm --no-deps php php bin/console lexik:jwt:generate-keypair --skip-if-exists --no-interaction
+      # The application entrypoint waits for the database. Start its dependencies
+      # first before running any one-off PHP command.
+      - name: Start database and mailer
+        run: docker compose up --detach --wait --wait-timeout 180 database mailer
+
+      # Keep the normal image entrypoint: it prepares the development container and
+      # installs Composer dependencies. Its DB readiness check now succeeds because
+      # the database service was started in the previous step.
+      - name: Generate ephemeral JWT key pair
+        run: >-
+          docker compose run --rm --no-deps php php bin/console
+          lexik:jwt:generate-keypair --skip-if-exists --no-interaction
 
       - name: Start application and dependencies
         run: docker compose up --detach --wait --wait-timeout 180
 
       - name: Validate Composer metadata
         run: docker compose exec -T php composer validate --strict
+
+      - name: Verify PHP and extension requirements from composer.lock
+        run: docker compose exec -T php composer check-platform-reqs --lock
+
+      - name: Lint PHP syntax in the application runtime
+        shell: bash
+        run: |
+          docker compose exec -T php sh -lc '
+            set -eu
+            for directory in src config migrations tests; do
+              if [ -d "$directory" ]; then
+                find "$directory" -type f -name "*.php" -print0
+              fi
+            done | xargs -0 -r -n 1 php -l
+          '
 
       - name: Audit Composer dependencies
         run: docker compose exec -T php composer audit --locked --no-interaction
@@ -142,17 +166,28 @@ jobs:
           docker compose exec -T php php bin/console lint:yaml config
           docker compose exec -T php php bin/console lint:container
 
-      - name: Verify test database exists
-        run: docker compose exec -T php php bin/console --env=test doctrine:database:create --if-not-exists --no-interaction
+      - name: Create test database if needed
+        run: >-
+          docker compose exec -T php php bin/console
+          --env=test doctrine:database:create
+          --if-not-exists --no-interaction
 
       - name: Synchronize migration metadata
-        run: docker compose exec -T php php bin/console --env=test doctrine:migrations:sync-metadata-storage --no-interaction
+        run: >-
+          docker compose exec -T php php bin/console
+          --env=test doctrine:migrations:sync-metadata-storage
+          --no-interaction
 
       - name: Apply database migrations
-        run: docker compose exec -T php php bin/console --env=test doctrine:migrations:migrate --no-interaction
+        run: >-
+          docker compose exec -T php php bin/console
+          --env=test doctrine:migrations:migrate
+          --no-interaction
 
       - name: Validate Doctrine schema
-        run: docker compose exec -T php php bin/console --env=test doctrine:schema:validate
+        run: >-
+          docker compose exec -T php php bin/console
+          --env=test doctrine:schema:validate
 
       - name: Run PHPUnit
         run: docker compose exec -T php php bin/phpunit

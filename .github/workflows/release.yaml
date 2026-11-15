@@ -15,10 +15,10 @@ concurrency:
 jobs:
   verify:
     name: Verify release commit
-    uses: ./.github/workflows/ci.yaml
+    uses: $/.github/workflows/ci.yaml
     permissions:
       contents: read
-      statuses: write
+      statuses: write # Allows the called CI workflow to publish Super-Linter status checks.
 
   publish:
     name: Build and publish to GHCR
@@ -27,7 +27,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-      packages: write
+      packages: write # Required to publish versioned and latest container images to GHCR.
     steps:
       - name: Checkout release tag
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
