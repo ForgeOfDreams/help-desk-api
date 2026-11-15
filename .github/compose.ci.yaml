@@ -1,4 +1,3 @@
-
 # This overlay is used only by GitHub Actions. It must not be part of the local
 # default Compose invocation or production configuration.
 services:
@@ -12,7 +11,7 @@ services:
 
       # Doctrine appends "_test" automatically when running with APP_ENV=test.
       # Base name help_desk becomes help_desk_test.
-      DATABASE_URL: "mysql://${MYSQL_USER:-helpdesk_ci}:${MYSQL_PASSWORD:-helpdesk_ci_password}@database:3306/help_desk?serverVersion=${MYSQL_VERSION:-8.4}&charset=${MYSQL_CHARSET:-utf8mb4}"
+      DATABASE_URL: 'mysql://${MYSQL_USER:-helpdesk_ci}:${MYSQL_PASSWORD:-helpdesk_ci_password}@database:3306/help_desk?serverVersion=${MYSQL_VERSION:-8.4}&charset=${MYSQL_CHARSET:-utf8mb4}'
 
       JWT_SECRET_KEY: /app/config/jwt/private.pem
       JWT_PUBLIC_KEY: /app/config/jwt/public.pem

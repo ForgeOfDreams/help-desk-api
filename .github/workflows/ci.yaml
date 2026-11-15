@@ -90,8 +90,8 @@ jobs:
 
       - name: Build production target without publishing
         run: >-
-          docker build --pull --file .docker/Dockerfile
-          --target frankenphp_prod --tag help-desk-api:ci .
+          docker build --pull --file .docker/Dockerfile --target frankenphp_prod --tag
+          help-desk-api:ci .
 
   integration:
     name: Integration tests
@@ -134,8 +134,8 @@ jobs:
       # the database service was started in the previous step.
       - name: Generate ephemeral JWT key pair
         run: >-
-          docker compose run --rm --no-deps php php bin/console
-          lexik:jwt:generate-keypair --skip-if-exists --no-interaction
+          docker compose run --rm --no-deps php php bin/console lexik:jwt:generate-keypair
+          --skip-if-exists --no-interaction
 
       - name: Start application and dependencies
         run: docker compose up --detach --wait --wait-timeout 180
@@ -168,32 +168,30 @@ jobs:
 
       - name: Create test database if needed
         run: >-
-          docker compose exec -T php php bin/console
-          --env=test doctrine:database:create
+          docker compose exec -T php php bin/console --env=test doctrine:database:create
           --if-not-exists --no-interaction
 
       - name: Synchronize migration metadata
         run: >-
-          docker compose exec -T php php bin/console
-          --env=test doctrine:migrations:sync-metadata-storage
-          --no-interaction
+          docker compose exec -T php php bin/console --env=test
+          doctrine:migrations:sync-metadata-storage --no-interaction
 
       - name: Apply database migrations
         run: >-
-          docker compose exec -T php php bin/console
-          --env=test doctrine:migrations:migrate
+          docker compose exec -T php php bin/console --env=test doctrine:migrations:migrate
           --no-interaction
 
       - name: Validate Doctrine schema
         run: >-
-          docker compose exec -T php php bin/console
-          --env=test doctrine:schema:validate
+          docker compose exec -T php php bin/console --env=test doctrine:schema:validate
 
       - name: Run PHPUnit
         run: docker compose exec -T php php bin/phpunit
 
       - name: Check API documentation endpoint
-        run: curl --insecure --fail --silent --show-error --retry 10 --retry-connrefused --retry-delay 2 https://localhost/api/docs --output /dev/null
+        run:
+          curl --insecure --fail --silent --show-error --retry 10 --retry-connrefused --retry-delay
+          2 https://localhost/api/docs --output /dev/null
 
       - name: Print service logs on failure
         if: failure()
