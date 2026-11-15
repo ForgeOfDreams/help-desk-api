@@ -51,10 +51,9 @@ security:
 
     # Note: Only the *first* matching rule is applied
     access_control:
+        - { path: '^/api/docs(?:$|[/.])', roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/login$, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
 
 when@test:
     security:

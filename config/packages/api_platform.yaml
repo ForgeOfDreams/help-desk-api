@@ -33,6 +33,7 @@ api_platform:
     # exposed. Mapping a directory does not automatically expose every entity.
     mapping:
         paths:
+            - '%kernel.project_dir%/src/ApiResource'
             - '%kernel.project_dir%/src/Entity'
 
     defaults:
