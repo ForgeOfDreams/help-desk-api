@@ -1,0 +1,17 @@
+framework:
+  rate_limiter:
+    auth_registration:
+      policy: 'fixed_window'
+      limit: 5
+      interval: '15 minutes'
+
+    auth_resend_verification:
+      policy: 'fixed_window'
+      limit: 3
+      interval: '10 minutes'
+
+    auth_token_completion:
+      policy: 'fixed_window'
+      limit: 10
+      interval: '30 minutes'
+  

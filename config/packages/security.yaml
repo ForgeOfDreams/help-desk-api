@@ -17,10 +17,20 @@ security:
 
     firewalls:
         dev:
-            # Ensure dev tools and static assets are always allowed
-            pattern: ^/(_profiler(/|$)|(_wdt|assets|build)/)
+            pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
-        
+
+        # Swagger/OpenAPI is intentionally public. Keep before the generic API firewall.
+        api_docs:
+            pattern: '^/api/docs(?:$|[/.])'
+            security: false
+
+        # Public onboarding endpoints must not challenge for a JWT.
+        auth_public:
+            pattern: '^/api/auth/(?:register|verify-email|set-password|resend-verification)$'
+            security: false
+
+        # JSON login issues a Lexik JWT. This firewall must precede the generic API firewall.
         login:
             pattern: ^/api/auth/login$
             stateless: true
@@ -43,17 +53,12 @@ security:
             user_checker: App\Security\UserChecker
             jwt: ~
 
-            # Activate different ways to authenticate:
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
-
-    # Note: Only the *first* matching rule is applied
     access_control:
         - { path: '^/api/docs(?:$|[/.])', roles: PUBLIC_ACCESS }
-        - { path: ^/api/auth/login$, roles: PUBLIC_ACCESS }
-        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+        - { path: '^/api/auth/(?:register|verify-email|set-password|resend-verification)$', roles: PUBLIC_ACCESS }
+        - { path: '^/api/auth/login$', roles: PUBLIC_ACCESS }
+        - { path: '^/api/admin', roles: ROLE_ADMIN }
+        - { path: '^/api', roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
     security:
