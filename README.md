@@ -1,9 +1,98 @@
-# help-desk-api
+# Help Desk API
 
-## Docker
+Инженерная документация backend-сервиса Help Desk. Документ описывает назначение системы, архитектурные границы, HTTP-контракт, модель предметной области, безопасность, инфраструктуру разработки и CI/CD.
+
+Документация ориентирована на разработчиков, ревьюеров и инженеров, которые сопровождают приложение. Она не является пользовательским руководством и не заменяет фактические настройки Symfony, `composer.lock` или контракт, сформированный установленной версией API Platform.
+
+## Назначение
+
+Help Desk API предназначен для обработки обращений пользователей в службу поддержки. Базовые сценарии включают создание и просмотр тикетов, маршрутизацию обращений между очередью и сотрудниками поддержки, изменение статусов, комментарии, внутренние заметки, категории и уведомления. Система также содержит механизмы аутентификации, регистрации, подтверждения email и приглашения сотрудников.
+
+## Технологический стек
+
+- PHP и Symfony 8.1.
+- FrankenPHP и Caddy для выполнения приложения и HTTP/TLS.
+- API Platform для декларативного описания HTTP-ресурсов и OpenAPI.
+- Doctrine ORM/DBAL и Doctrine Migrations для доступа к данным и изменений схемы.
+- MySQL 8.4 с кодировкой `utf8mb4`.
+- LexikJWTAuthenticationBundle и Symfony Security для JWT-аутентификации.
+- Symfony Mailer; Mailpit используется как локальный SMTP-приёмник.
+- Docker Compose для локального окружения и интеграционных проверок.
+- GitHub Actions, Super-Linter и zizmor для проверок репозитория и workflow.
+- PHP-CS-Fixer с правилами `@Symfony` для единообразного форматирования PHP.
+
+Точная версия библиотек определяется `composer.lock`. При изменении зависимостей документацию и конфигурацию необходимо сверять с фактически установленными версиями.
+
+## Основные инженерные принципы
+
+1. Публичный HTTP-контракт строится на явных API DTO-ресурсах; ORM-сущности не должны автоматически становиться общедоступными writable-ресурсами.
+2. Проверка доступа выполняется на backend. Клиентские ограничения интерфейса и JWT claims не заменяют авторизацию на операции и проверку владельца/команды.
+3. Бизнес-операции, которые изменяют состояние тикета, должны согласованно обновлять аудит и историю статусов в рамках транзакции.
+4. Изменения структуры БД доставляются миграциями, а не ручными изменениями production-схемы.
+5. Секреты и приватные ключи передаются через защищённое окружение или secret store и не хранятся в Git.
+6. Форматирование, синтаксическая проверка, проверка зависимостей, миграций и тесты являются частью CI.
+
+## Быстрый запуск
+
+Команды выполняются из корня репозитория. Для Docker Compose должны быть установлены Docker Engine/Desktop и Compose v2.
 
 ```bash
-docker compose build --pull --no-cache
-docker compose up --wait
-docker compose down --remove-orphans
+docker compose config
+docker compose up -d --build
+docker compose ps
 ```
+
+Локальные адреса по конфигурации Compose:
+
+- `https://localhost/api/docs` — API Platform documentation endpoint.
+- `http://localhost:8025` — интерфейс Mailpit в development-окружении.
+- MySQL доступен другим Compose-сервисам по адресу `database:3306`; приложение внутри контейнера не должно использовать `localhost` как адрес БД.
+
+Если локальная конфигурация задаёт `SERVER_NAME`, `HTTP_PORT` или `HTTPS_PORT`, адреса и published ports могут отличаться.
+
+## Основные команды разработчика
+
+```bash
+# Проверить конфигурацию Compose
+docker compose config --quiet
+
+# Проверить YAML и контейнер Symfony
+docker compose exec -T php php bin/console lint:yaml config
+docker compose exec -T php php bin/console lint:container
+
+# Проверить Composer-манифест и платформенные требования
+docker compose exec -T php composer validate --strict
+docker compose exec -T php composer check-platform-reqs --lock
+
+# Отформатировать PHP и проверить результат
+docker compose exec -T php composer format
+docker compose exec -T php composer format:check
+
+# Проверить схему Doctrine
+docker compose exec -T php php bin/console doctrine:schema:validate
+
+# Запустить тесты
+docker compose exec -T php php bin/phpunit
+```
+
+Команды форматирования требуют `friendsofphp/php-cs-fixer` в `require-dev` и скрипты `format`/`format:check` в `composer.json`. Строгая проверка Composer требует метаданные верхнего уровня `name` и `description`.
+
+## Структура документации
+
+- [Архитектура](docs/architecture.md) — границы слоёв и ответственность компонентов.
+- [Предметная область](docs/domain-model.md) — основные сущности, состояния и инварианты.
+- [HTTP API](docs/api-contract.md) — поддерживаемые маршруты и контракты запросов.
+- [Аутентификация и авторизация](docs/security.md) — JWT, роли, токены и правила доступа.
+- [База данных и миграции](docs/database.md) — схема, соединение, миграции и тестовая БД.
+- [Конфигурация окружений](docs/configuration.md) — переменные, локальные и production-настройки.
+- [Разработка](docs/development.md) — локальный процесс разработки и обязательные проверки.
+- [CI/CD и релизы](docs/ci-cd.md) — workflow, требования CI и публикация образов.
+- [Качество кода](docs/code-quality.md) — PHP-CS-Fixer, Super-Linter и Composer-проверки.
+- [Эксплуатация](docs/operations.md) — запуск, диагностика и production-ограничения.
+- [Известные ограничения](docs/implementation-status.md) — функциональность, которую нельзя считать завершённой без отдельной реализации.
+- [Инженерные решения](docs/decisions.md) — ключевые архитектурные решения и их последствия.
+- [Устранение неполадок](docs/troubleshooting.md) — повторяемые ошибки конфигурации и CI.
+
+## Источник истины
+
+При расхождении документации и исходного кода приоритет имеют фактическая конфигурация приложения, `composer.lock`, миграции, тесты и автоматически сформированная OpenAPI-схема. После изменения API или инфраструктуры обновляйте соответствующие документы в том же pull request.
